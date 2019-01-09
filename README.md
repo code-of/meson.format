@@ -1,16 +1,13 @@
 ## mediathek-logo.bin-builder
 
-<p>CLI to unpack/repack the 'logo.bin'-file, that comes with the stock-ROM</p>
+<p>A code-formatter based on [this](https://github.com/steinwurf/astyle) astyle fork.</p>
+<p>Major changes are going to be made to create a reliable formatter for meson.build-files</p>
 
 ---
 
 #### Dependencies
 
-    - gcc (version >= 7.x)
-    - zlib (any version)
-    - graphicsmagick (version >= 1.2)
-    - meson (version >= 1.8)
-    - ninja (version >= 1.8)
+    - to be added...
 
 ---
 
