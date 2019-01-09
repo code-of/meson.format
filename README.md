@@ -1,6 +1,6 @@
 ## mediathek-logo.bin-builder
 
-<p>A code-formatter based on [this](https://github.com/steinwurf/astyle) astyle fork.</p>
+<p>A code-formatter inspired by some snippets taken from artistic style for the c-language family.</p>
 <p>Major changes are going to be made to create a reliable formatter for meson.build-files</p>
 
 ---

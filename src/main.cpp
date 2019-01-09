@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#define PROJECT_NAME "formeson"
+
 
 int main(int argc, char **argv)
 {
