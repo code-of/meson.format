@@ -1,13 +1,13 @@
 ## mediathek-logo.bin-builder
 
-<p>A code-formatter inspired by some snippets taken from artistic style for the c-language family.</p>
-<p>Major changes are going to be made to create a reliable formatter for meson.build-files</p>
+<p>A code-formatter inspired by some snippets of artistic-style.</p>
+<p>This aims to be simple but stable solution, when formatting meson.build-files.</p>
 
 ---
 
 #### Dependencies
 
-    - to be added...
+    - gcc (version >= 8.0.0)
 
 ---
 
