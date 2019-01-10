@@ -50,6 +50,7 @@ class Formatter {
         bool hasIfile;
         bool hasRfile;
         bool fScope;
+        bool stage2;
         align_t indent;
         ofstream *oFile;
         ifstream *iFile;

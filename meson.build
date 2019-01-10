@@ -6,10 +6,11 @@ project('format-meson', 'cpp',
 
 incldir = include_directories('./include')
 
-deps = declare_dependency(include_directories : [incldir])
+deps = declare_dependency(include_directories :      [incldir])
 
 bin = executable('format-meson', ['src/formatter.cc', 'src/main.cc'],
-                 cpp_args : ['-std=gnu++2a', '-Wall', '-pedantic',
+                 cpp_args : 
+                 ['-std=gnu++2a', '-Wall', '-pedantic',
                  '-Wno-deprecated', '-m64', '-mtune=generic',
                  '-O2', '-Os', '-pthread'],
                  link_args : ['-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now'],

@@ -97,6 +97,7 @@ Formatter::Formatter(int argc, char **argv)
     this->hasOfile = false;
     this->hasRfile = false;
     this->fScope = false;
+    this->stage2 = false;
     this->indent = 0;
     this->parseCmdLine(argc, argv);
 }
@@ -150,7 +151,6 @@ int Formatter::run(void)
             delete this->oFile;
 
             this->buf.clear();
-            this->fScope = false;
         }
         this->hasIfile = false;
     }
@@ -176,7 +176,6 @@ int Formatter::run(void)
                 this->printLine(this->format(iterator.nextLine()));
 
             this->buf.clear();
-            this->fScope = false;
         }
         this->hasIfile = false;
     }
@@ -210,7 +209,6 @@ int Formatter::run(void)
             delete this->oFile;
 
             this->buf.clear();
-            this->fScope = false;
         }
         this->hasOfile = false;
     }
@@ -286,10 +284,10 @@ string *Formatter::format(string *in)
     delete in;
     // TAB remove
     replace(out, "^\t*", "");
-    // SPACE around Colons
-    replace(out, "\\s*(:)\\s*", " $1 ");
+    // SPACE prefixed/suffixed Colons (2x to merge )
+    replace(out, "\\s+(:)(\\s(?!\n))*", " $1 ");
     // Remove trailing Whitespaces and align Commas
-    replace(out, "\\s*(,)\\s*$", "$1\n");
+    replace(out, "\\s+(,)\\s+$", "$1\n");
     // Remove prepended and trailing Whitespaces inside square-brackets
     replace(out, "(\\[)\\s*", "$1");
     replace(out, "\\s*(\\],?)", "$1");
@@ -297,7 +295,14 @@ string *Formatter::format(string *in)
     replace(out, "^\\s*(\\w+)\\s*(=)\\s*(\\w+)\\s*(\\()\\s*", "$1 $2 $3$4");
     // 2 Args on the same line as Function
     replace(out, "\\s*(\\()\\s*('?.+?'?)\\s*(,)\\s*('?.+?'?)\\s*(,|\\))\\s*$", "$1$2$3 $4$5\n");
-
+    if (true == this->stage2) {
+        this->stage2 = false;
+        return out;
+    }
+    if (false == this->stage2) {
+        this->stage2 = true;
+        out = this->format(out);
+    }
     if (this->fScope) {
         align_t sc = 0;
         do
