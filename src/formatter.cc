@@ -37,12 +37,15 @@ static void replace(string *target, const char *rexp, const char *rfmt);
 
 static void usage(void)
 {
-    cerr << "Usage:\n\t" << __progname << "[OPTION(S)] [FILE(S)]\t- reads input from stdin and writes to stdout.\n";
-    cerr << "Options:\n\t" << "--input, -i FILE\t- reads from file and writes to stdout.\n";
-    cerr << "\t" << "--output, -o FILE\t- redirects output to FILE.\n";
-    cerr << "\t" << "--replace, -r FILE\t- buffered inplace overwrite of FILE.\n";
-    cerr << "\t" << "--backup\t- preserves the original file with .orig-extension. (only useable with -r|--replace)\n";
-    cerr << "\t" << "\t\tergotamin (c) 2018 MIT License\n";
+    cerr << "    Usage:\n\n";
+    cerr << "        " << __progname << "[OPTION(S)] [FILE(S)]\t\n\n";
+    cerr << "    Options:\n\n";
+    cerr << "      " << "--input, -i FILE    - reads from file and writes to stdout.\n\n";
+    cerr << "      " << "--output, -o FILE   - redirects output to FILE.\n\n";
+    cerr << "      " << "--replace, -r FILE  - buffered inplace overwrite of FILE.\n\n";
+    cerr << "      " << "--backup            - preserves the file with '.orig'-extension.\n";
+    cerr << "      " << "                      (only useable during -r|--replace)\n\n";
+    cerr << "[by: ergotamin (c) 2018 MIT License]\n";
     exit(EXIT_SUCCESS);
 }
 
@@ -286,10 +289,10 @@ string *Formatter::format(string *in)
     // SPACE around Colons
     replace(out, "\\s*(:)\\s*", " $1 ");
     // Remove trailing Whitespaces and align Commas
-    replace(out, "\\s*(,)\\s+?$", "$1\n");
+    replace(out, "\\s*(,)\\s*$", "$1\n");
     // Remove prepended and trailing Whitespaces inside square-brackets
     replace(out, "(\\[)\\s*", "$1");
-    replace(out, "\\s*(\\],?)\\s*", "$1");
+    replace(out, "\\s*(\\],?)", "$1");
     // SPACE around Variable Assignment
     replace(out, "^\\s*(\\w+)\\s*(=)\\s*(\\w+)\\s*(\\()\\s*", "$1 $2 $3$4");
     // 2 Args on the same line as Function
@@ -298,25 +301,31 @@ string *Formatter::format(string *in)
     if (this->fScope) {
         align_t sc = 0;
         do
-            if (out->at(sc++) != ' ')
+            if (out->at(sc++) != ' ') {
+                sc--;
                 break;
+            }
         while (true);
 
         if (sc < this->indent)
             out->insert(0, this->indent - (sc - 1), ' ');
 
         if (sc > this->indent) {
-            out->erase(0, sc - 1);
+            out->erase(0, sc);
             out->insert(0, this->indent, ' ');
         }
 
-        if (out->npos != out->find(')'))
+        if (out->npos != out->find(')')) {
             this->fScope = false;
+            this->indent = 0;
+        }
     }
 
     if (out->npos != out->find('(')) {
-        this->indent = out->find('(') + 1UL;
-        this->fScope = true;
+        if (out->npos == out->find(')')) {
+            this->indent = out->find('(') + 1UL;
+            this->fScope = true;
+        }
     }
 
     return out;

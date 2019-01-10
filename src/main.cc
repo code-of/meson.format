@@ -6,7 +6,8 @@
 #include <formatter.hh>
 
 #define PROJECT "meson.format"
-#define VERSION "1.0.0a"
+#define VERSION "1.0.1"
+#define LICENSE "MIT"
 #define AUTHOR  "Marcel Bobolz <ergotamin.source@gmail.com>"
 
 int main(int argc, char **argv)
