@@ -9,8 +9,7 @@ deps = declare_dependency(include_directory: ['./include'])
 bin = executable('meson-format', 
                  ['src/formatter.cc', 
                  'src/main.cc'],
-                 cpp_args : 
-                   cpp_args :
+                 cpp_args :
                  ['-std=gnu++2a',
                  '-Wall', 
                  '-pedantic', 
