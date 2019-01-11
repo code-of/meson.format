@@ -1,6 +1,6 @@
-## mediathek-logo.bin-builder
+## meson.format - format-meson
 
-<p>A code-formatter inspired by some snippets of artistic-style.</p>
+<p>A code-formatter made due the lack of avaible applications targetting this.</p>
 <p>This aims to be simple but stable solution, when formatting meson.build-files.</p>
 
 ---
