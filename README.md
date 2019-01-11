@@ -1,5 +1,7 @@
 ## meson.format - format-meson
 
+![alt text](https://github.com/ergotamin/meson.format/blob/master/screenshot.png "VSCodePreview")
+
 <p>A code-formatter made due the lack of avaible applications targetting this.</p>
 <p>This aims to be simple but stable solution, when formatting meson.build-files.</p>
 
