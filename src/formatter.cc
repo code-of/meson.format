@@ -17,271 +17,105 @@ extern const char *__progname;
 namespace meson {
 using namespace std;
 
-vector<string> *inp_v;
-vector<string> *out_v;
-vector<string> *rep_v;
-
-static int bflag;
-
-static constexpr struct option lopts[] =
-{
-    { "backup",	 no_argument,		&bflag, 1	},
-    { "help",	 no_argument,		0,		'h' },
-    { "replace", required_argument, 0,		'r' },
-    { "input",	 required_argument, 0,		'i' },
-    { "output",	 required_argument, 0,		'o' },
-    { 0,		 0,					0,		0	},
-};
+static utf8_t _c;
+static stringstream sstream;
 
 static void replace(string *target, const char *rexp, const char *rfmt);
 
-static void usage(void)
+Formatter::Formatter(void)
 {
-    cerr << "    Usage:\n\n";
-    cerr << "        " << __progname << "[OPTION(S)] [FILE(S)]\t\n\n";
-    cerr << "    Options:\n\n";
-    cerr << "      " << "--input, -i FILE    - reads from file and writes to stdout.\n\n";
-    cerr << "      " << "--output, -o FILE   - redirects output to FILE.\n\n";
-    cerr << "      " << "--replace, -r FILE  - buffered inplace overwrite of FILE.\n\n";
-    cerr << "      " << "--backup            - preserves the file with '.orig'-extension.\n";
-    cerr << "      " << "                      (only useable during -r|--replace)\n\n";
-    cerr << "[by: ergotamin (c) 2018 MIT License]\n";
-    exit(EXIT_SUCCESS);
-}
-
-StreamIterator::StreamIterator(stringstream *in)
-{
-    this->inStream = in;
-    this->inStream->seekg(0, this->inStream->end);
-    this->streamLength = this->inStream->tellg();
-    this->inStream->seekg(0, this->inStream->beg);
-}
-
-StreamIterator::~StreamIterator()
-{
-}
-
-int StreamIterator::getStreamLength(void) const
-{
-    return static_cast<int>(this->streamLength);
-}
-
-string *StreamIterator::nextLine(void)
-{
-    utf8_t *tBuf = new utf8_t [256];
-
-    if (!this->inStream->eof()) {
-        this->inStream->getline((char *)tBuf, 255, '\n');
-        this->iBuf = new string((const char *)tBuf);
-        delete[] tBuf;
-    }
-    this->inStream->peek();
-    if (false == this->inStream->good()) {
-        return this->iBuf;
-    } else {
-        this->iBuf->append("\n");
-        return this->iBuf;
-    }
-}
-
-streamoff StreamIterator::tellg(void)
-{
-    return this->inStream->tellg();
-}
-
-Formatter::Formatter(int argc, char **argv)
-{
-    this->iFile = NULL;
-    this->oFile = NULL;
-    this->hasIfile = false;
-    this->hasOfile = false;
-    this->hasRfile = false;
-    this->fScope = false;
+    this->scope = false;
     this->stage2 = false;
     this->indent = 0;
-    this->parseCmdLine(argc, argv);
 }
 
 Formatter::~Formatter(void)
 {
 }
 
-int Formatter::run(void)
+void Formatter::write_to_file(string path)
 {
-    utf8_t ch = 0;
+    ofstream ofs(path, ios::out | ios::trunc);
 
-    this->buf.clear();
+    if (!ofs.is_open())
+        throw;
 
-    if (!(this->hasIfile || this->hasRfile || this->hasOfile)) {
-        istream *input = &cin;
+    StreamIterator iterator(&sstream);
 
-        input->get(ch);
-        while (!input->eof()) {
-            this->buf.put(ch);
-            input->get(ch);
-        }
+    while (iterator.hasLine())
+        this->write_to(ofs, this->format_from(iterator.nextLine()));
 
-        StreamIterator iterator(&(this->buf));
-        while (iterator.hasLine())
-            this->printLine(this->format(iterator.nextLine()));
+    sstream.clear();
+    ofs.close();
 
-        this->buf.clear();
-        return EXIT_SUCCESS;
-    }
-
-    if (this->hasOfile && !this->hasIfile) {
-        for (size_t n = 0; n < out_v->size(); n++) {
-            istream *input = &cin;
-
-            input->get(ch);
-            while (!input->eof()) {
-                this->buf.put(ch);
-                input->get(ch);
-            }
-
-            this->oFile = new ofstream(out_v->at(n), ios::out | ios::trunc);
-
-            if (!this->oFile->is_open())
-                throw;
-
-            StreamIterator iterator(&(this->buf));
-            while (iterator.hasLine())
-                this->writeLine(this->format(iterator.nextLine()));
-            this->oFile->close();
-            delete this->oFile;
-
-            this->buf.clear();
-        }
-        this->hasIfile = false;
-    }
-
-    if (this->hasIfile && !this->hasOfile) {
-        for (size_t n = 0; n < inp_v->size(); n++) {
-            this->iFile = new ifstream(inp_v->at(n), ios::in);
-
-            if (!this->iFile->is_open())
-                throw;
-            this->iFile->get(ch);
-            while (!this->iFile->eof()) {
-                this->buf.put(ch);
-                this->iFile->get(ch);
-            }
-            this->iFile->close();
-            delete this->iFile;
-
-            ch = 0;
-
-            StreamIterator iterator(&(this->buf));
-            while (iterator.hasLine())
-                this->printLine(this->format(iterator.nextLine()));
-
-            this->buf.clear();
-        }
-        this->hasIfile = false;
-    }
-
-    if (this->hasOfile && this->hasIfile) {
-        for (size_t n = 0; n < out_v->size(); n++) {
-            this->iFile = new ifstream(inp_v->at(n), ios::in);
-
-            if (!this->iFile->is_open())
-                throw;
-
-            this->iFile->get(ch);
-            while (!this->iFile->eof()) {
-                this->buf.put(ch);
-                this->iFile->get(ch);
-            }
-            this->iFile->close();
-            delete this->iFile;
-
-            ch = 0;
-
-            this->oFile = new ofstream(out_v->at(n), ios::out | ios::trunc);
-
-            if (!this->oFile->is_open())
-                throw;
-
-            StreamIterator iterator(&(this->buf));
-            while (iterator.hasLine())
-                this->writeLine(this->format(iterator.nextLine()));
-            this->oFile->close();
-            delete this->oFile;
-
-            this->buf.clear();
-        }
-        this->hasOfile = false;
-    }
-
-    if (this->hasRfile) {
-        for (size_t n = 0; n < rep_v->size(); n++) {
-            this->iFile = new ifstream(rep_v->at(n), ios::in);
-
-            if (!this->iFile->is_open())
-                throw;
-
-            this->iFile->get(ch);
-            while (!this->iFile->eof()) {
-                this->buf.put(ch);
-                this->iFile->get(ch);
-            }
-            this->iFile->close();
-            delete this->iFile;
-
-            ch = 0;
-
-            if (bflag) {
-                string *backup = new string(rep_v->at(n).c_str());
-                backup->append(".orig");
-                rename(rep_v->at(n).c_str(), backup->c_str());
-                delete backup;
-            }
-
-            this->oFile = new ofstream(rep_v->at(n), ios::out | ios::trunc);
-
-            if (!this->oFile->is_open())
-                throw;
-
-            StreamIterator iterator(&(this->buf));
-            while (iterator.hasLine())
-                this->writeLine(this->format(iterator.nextLine()));
-            this->oFile->close();
-            delete this->oFile;
-
-            this->buf.clear();
-        }
-        this->hasRfile = false;
-    }
-    return EXIT_SUCCESS;
-}
-
-void Formatter::writeLine(string *out)
-{
-    if (out->length())
-        this->oFile->write(out->c_str(), out->length());
+    if (ofs.good())
+        return;
     else
-        this->oFile->write("\n", 1);
-    this->oFile->flush();
-    delete out;
+        throw;
 }
 
-void Formatter::printLine(string *out)
+void Formatter::read_from_file(string path)
 {
-    if (out->length())
-        cout << out->c_str();
+    _c = 0;
+    sstream.clear();
+    ifstream ifs(path, ios::in);
+
+    if (!ifs.is_open())
+        throw;
+
+    ifs.get(_c);
+    while (!ifs.eof()) {
+        sstream.put(_c);
+        ifs.get(_c);
+    }
+    ifs.close();
+    if (sstream.good())
+        return;
     else
-        cout << endl;
-    cout.flush();
-    delete out;
+        throw;
 }
 
-string *Formatter::format(string *in)
+void Formatter::write_to_stream(ostream& os)
 {
-    string s;
+    StreamIterator iterator(&sstream);
+
+    while (iterator.hasLine())
+        this->write_to(os, this->format_from(iterator.nextLine()));
+
+    sstream.clear();
+}
+
+void Formatter::read_from_stream(istream *is)
+{
+    _c = 0;
+    sstream.clear();
+    is->get(_c);
+    while (!is->eof()) {
+        sstream.put(_c);
+        is->get(_c);
+    }
+    if (sstream.good())
+        return;
+    else
+        throw;
+}
+
+void Formatter::write_to(ostream& _os, string *_s)
+{
+    if (_s->length())
+        _os.write(_s->c_str(), _s->length());
+    else
+        _os.write("\n", 1);
+    _os.flush();
+    delete _s;
+}
+
+string *Formatter::format_from(string *s)
+{
     string *out = new string;
 
-    out->assign(in->c_str());
-    delete in;
+    out->assign(s->c_str());
+    delete s;
     // TAB remove
     replace(out, "^\t*", "");
     // SPACE prefixed/suffixed Colons (2x to merge )
@@ -301,9 +135,9 @@ string *Formatter::format(string *in)
     }
     if (false == this->stage2) {
         this->stage2 = true;
-        out = this->format(out);
+        out = this->format_from(out);
     }
-    if (this->fScope) {
+    if (this->scope) {
         align_t sc = 0;
         do
             if (out->at(sc++) != ' ') {
@@ -321,7 +155,7 @@ string *Formatter::format(string *in)
         }
 
         if (out->npos != out->find(')')) {
-            this->fScope = false;
+            this->scope = false;
             this->indent = 0;
         }
     }
@@ -329,81 +163,11 @@ string *Formatter::format(string *in)
     if (out->npos != out->find('(')) {
         if (out->npos == out->find(')')) {
             this->indent = out->find('(') + 1UL;
-            this->fScope = true;
+            this->scope = true;
         }
     }
 
     return out;
-}
-
-void Formatter::parseCmdLine(int argc, char **argv)
-{
-    int ch;
-
-    inp_v = new vector<string>;
-    out_v = new vector<string>;
-    rep_v = new vector<string>;
-
-    while (true) {
-        int optidx = 0;
-
-        ch = getopt_long(argc, argv, "i:o:r:", lopts, &optidx);
-
-        if (-1 == ch)
-            break;
-
-        switch (ch) {
-        case 0:
-            break;
-
-        case 'h':
-            usage();
-            break;
-
-        case 'i':
-            if (0 == access(optarg, F_OK))
-                inp_v->push_back(string(optarg));
-            else
-                throw;
-            break;
-
-        case 'o':
-            out_v->push_back(string(optarg));
-            break;
-
-        case 'r':
-            if (0 == access(optarg, F_OK))
-                rep_v->push_back(string(optarg));
-            else
-                throw;
-            break;
-
-        default:
-            delete out_v;
-            delete inp_v;
-            delete rep_v;
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (optind < argc) {
-        cerr << "Unknown parameter(s):" << endl;
-        while (optind < argc)
-            cerr << "[" << argv[optind++] << "] ";
-        cerr << endl;
-    }
-
-    if (bflag)
-        cerr << "Original file-state will be preserved !" << endl;
-
-    if (0 < rep_v->size())
-        this->hasRfile = true;
-
-    if (0 < inp_v->size())
-        this->hasIfile = true;
-
-    if (0 < out_v->size())
-        this->hasOfile = true;
 }
 
 static void replace(string *target, const char *rexp, const char *rfmt)

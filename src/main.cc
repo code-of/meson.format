@@ -3,16 +3,16 @@
 #// Marcel Bobolz
 #// <ergotamin.source@gmail.com>
 
-#include <formatter.hh>
+#include <console.hh>
 
 #define PROJECT "meson.format"
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 #define LICENSE "MIT"
 #define AUTHOR  "Marcel Bobolz <ergotamin.source@gmail.com>"
 
 int main(int argc, char **argv)
 {
-    meson::Formatter formatter(argc, argv);
+    meson::Console console(argc, argv);
 
-    return formatter.run();
+    return console.run();
 }
