@@ -46,7 +46,7 @@ void Formatter::write_to_file(string path)
                 break;
         }
 
-        this->write_to(os, this->to_format(codeBlock));
+        this->write_to(ofs, this->to_format(codeBlock));
 
         if (!iterator.hasLine())
             break;
