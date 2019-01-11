@@ -1,4 +1,5 @@
-project('format-meson', 'cpp',
+project('format-meson', 
+        'cpp',
         version : 
         '1.0.1',
         license : 

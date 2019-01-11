@@ -14,7 +14,7 @@ namespace meson {
 using namespace std;
 
 typedef char utf8_t;
-typedef unsigned long align_t;
+typedef string::size_type align_t;
 
 class StreamIterator
 {
@@ -45,10 +45,8 @@ class Formatter {
         void read_from_stream(istream *is);
 
     private:
-        bool scope;
-        bool stage2;
-        align_t indent;
-        string *format_from(string *s);
+        string *to_format(string *s);
         void write_to(ostream& _os, string *_s);
+        void replace(string *target, const char *rexp, const char *rfmt);
 };
 }

@@ -20,13 +20,8 @@ using namespace std;
 static utf8_t _c;
 static stringstream sstream;
 
-static void replace(string *target, const char *rexp, const char *rfmt);
-
 Formatter::Formatter(void)
 {
-    this->scope = false;
-    this->stage2 = false;
-    this->indent = 0;
 }
 
 Formatter::~Formatter(void)
@@ -42,8 +37,20 @@ void Formatter::write_to_file(string path)
 
     StreamIterator iterator(&sstream);
 
-    while (iterator.hasLine())
-        this->write_to(ofs, this->format_from(iterator.nextLine()));
+    do {
+        string *codeBlock = new string;
+
+        while (iterator.hasLine()) {
+            codeBlock->append(iterator.nextLine()->c_str());
+            if (codeBlock->find(')') != codeBlock->npos)
+                break;
+        }
+
+        this->write_to(os, this->to_format(codeBlock));
+
+        if (!iterator.hasLine())
+            break;
+    } while (true);
 
     sstream.clear();
     ofs.close();
@@ -69,6 +76,7 @@ void Formatter::read_from_file(string path)
         ifs.get(_c);
     }
     ifs.close();
+
     if (sstream.good())
         return;
     else
@@ -79,8 +87,19 @@ void Formatter::write_to_stream(ostream& os)
 {
     StreamIterator iterator(&sstream);
 
-    while (iterator.hasLine())
-        this->write_to(os, this->format_from(iterator.nextLine()));
+    do {
+        string *codeBlock = new string;
+        while (iterator.hasLine()) {
+            codeBlock->append(iterator.nextLine()->c_str());
+            if (codeBlock->find(')') != codeBlock->npos)
+                break;
+        }
+
+        this->write_to(os, this->to_format(codeBlock));
+
+        if (!iterator.hasLine())
+            break;
+    } while (true);
 
     sstream.clear();
 }
@@ -89,15 +108,50 @@ void Formatter::read_from_stream(istream *is)
 {
     _c = 0;
     sstream.clear();
+
     is->get(_c);
     while (!is->eof()) {
         sstream.put(_c);
         is->get(_c);
     }
+
     if (sstream.good())
         return;
     else
         throw;
+}
+
+string *Formatter::to_format(string *s)
+{
+    align_t pos1 = 0;
+    align_t pos2 = 0;
+    align_t indent = 0;
+    string *_s = new string(s->c_str());
+
+    delete s;
+    this->replace(_s, "\\s+", "");
+    this->replace(_s, "^(\\w+)(=)(\\w+)(\\()", "$1 $2 $3$4");
+    this->replace(_s, "(',|'[^']+',)", "$1\n");
+    this->replace(_s, "(:(?=\\['))", " $1\n");
+    this->replace(_s, "(:(?=')|:(?=\\[)|:(?=\\w))", " $1 ");
+    this->replace(_s, "\\](,(?=\\w+[^\\)]))", "]$1\n");
+    this->replace(_s, "( : [A-Za-z0-9_]+)(,)([A-Za-z0-9_]+ : )", "$1$2\n$3");
+
+    if (string::npos == (indent = _s->find("(")))
+        throw;
+
+    indent++;
+    do {
+        pos2 = _s->find('\n', pos1);
+        if (string::npos == pos2)
+            break;
+        _s->insert(pos2 + 1, indent, ' ');
+        pos1 = pos2 + 1;
+    } while (true);
+
+    _s->append("\n\n");
+
+    return _s;
 }
 
 void Formatter::write_to(ostream& _os, string *_s)
@@ -110,67 +164,7 @@ void Formatter::write_to(ostream& _os, string *_s)
     delete _s;
 }
 
-string *Formatter::format_from(string *s)
-{
-    string *out = new string;
-
-    out->assign(s->c_str());
-    delete s;
-    // TAB remove
-    replace(out, "^\t*", "");
-    // SPACE prefixed/suffixed Colons (2x to merge )
-    replace(out, "\\s+(:)(\\s(?!\n))*", " $1 ");
-    // Remove trailing Whitespaces and align Commas
-    replace(out, "\\s+(,)\\s+$", "$1\n");
-    // Remove prepended and trailing Whitespaces inside square-brackets
-    replace(out, "(\\[)\\s*", "$1");
-    replace(out, "\\s*(\\],?)", "$1");
-    // SPACE around Variable Assignment
-    replace(out, "^\\s*(\\w+)\\s*(=)\\s*(\\w+)\\s*(\\()\\s*", "$1 $2 $3$4");
-    // 2 Args on the same line as Function
-    replace(out, "\\s*(\\()\\s*('?.+?'?)\\s*(,)\\s*('?.+?'?)\\s*(,|\\))\\s*$", "$1$2$3 $4$5\n");
-    if (true == this->stage2) {
-        this->stage2 = false;
-        return out;
-    }
-    if (false == this->stage2) {
-        this->stage2 = true;
-        out = this->format_from(out);
-    }
-    if (this->scope) {
-        align_t sc = 0;
-        do
-            if (out->at(sc++) != ' ') {
-                sc--;
-                break;
-            }
-        while (true);
-
-        if (sc < this->indent)
-            out->insert(0, this->indent - (sc - 1), ' ');
-
-        if (sc > this->indent) {
-            out->erase(0, sc);
-            out->insert(0, this->indent, ' ');
-        }
-
-        if (out->npos != out->find(')')) {
-            this->scope = false;
-            this->indent = 0;
-        }
-    }
-
-    if (out->npos != out->find('(')) {
-        if (out->npos == out->find(')')) {
-            this->indent = out->find('(') + 1UL;
-            this->scope = true;
-        }
-    }
-
-    return out;
-}
-
-static void replace(string *target, const char *rexp, const char *rfmt)
+void Formatter::replace(string *target, const char *rexp, const char *rfmt)
 {
     regex expr(rexp);
 
