@@ -30,4 +30,3 @@ bin = executable('format-meson',
                  ['-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now'],
                  dependencies : [deps],
                  install : true)
-

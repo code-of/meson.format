@@ -24,7 +24,7 @@ class StreamIterator
         string *nextLine(void);
 
     private:
-        StreamIterator(const StreamIterator& copy);       // copy constructor not to be implemented
+        StreamIterator(const StreamIterator& copy);
         StreamIterator& operator=(StreamIterator&);
         stringstream *inStream;
 
@@ -39,14 +39,20 @@ class Formatter {
     public:
         Formatter(void);
         ~Formatter(void);
-        void write_to_file(string path);
-        void read_from_file(string path);
-        void write_to_stream(ostream& os);
-        void read_from_stream(istream *is);
+        void read(istream *is);
+        void read(string path);
+        void write(ostream& os);
+        void write(string path);
 
     private:
-        string *to_format(string *s);
-        void write_to(ostream& _os, string *_s);
-        void replace(string *target, const char *rexp, const char *rfmt);
+        // bool param;
+        align_t indent;
+        string *format_(string *s);
+        void format_v(utf8_t __c, string *_s);
+        string *indent_(const utf8_t *_append);
+        align_t count_(utf8_t __c, string *_s);
+        void write_(ostream& _os, string *_s);
+        bool match_(string *target, const utf8_t *rexp);
+        void replace_(string *target, const utf8_t *rexp, const utf8_t *rfmt);
 };
 }

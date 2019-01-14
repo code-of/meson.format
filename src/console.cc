@@ -126,26 +126,26 @@ void Console::usage(void)
 int Console::run(void)
 {
     if (!(this->hasIfile || this->hasRfile || this->hasOfile)) {
-        this->read_from_stream(&cin);
-        this->write_to_stream(cout);
+        this->read(&cin);
+        this->write(cout);
     } else if (this->hasOfile && !this->hasIfile) {
-        this->read_from_stream(&cin);
-        this->write_to_file(this->Ofile->c_str());
+        this->read(&cin);
+        this->write(this->Ofile->c_str());
     } else if (this->hasIfile && !this->hasOfile) {
-        this->read_from_file(this->Ifile->c_str());
-        this->write_to_stream(cout);
+        this->read(this->Ifile->c_str());
+        this->write(cout);
     } else if (this->hasOfile && this->hasIfile) {
-        this->read_from_file(this->Ifile->c_str());
-        this->write_to_file(this->Ofile->c_str());
+        this->read(this->Ifile->c_str());
+        this->write(this->Ofile->c_str());
     } else if (this->hasRfile) {
-        this->read_from_file(this->Rfile->c_str());
+        this->read(this->Rfile->c_str());
         if (bflag) {
             string *backup = new string(this->Rfile->c_str());
             backup->append(".orig");
             rename(this->Rfile->c_str(), backup->c_str());
             delete backup;
         }
-        this->write_to_file(this->Rfile->c_str());
+        this->write(this->Rfile->c_str());
     } else {
         throw;
     }
