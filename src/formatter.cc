@@ -21,10 +21,17 @@ static utf8_t _c;
 static stringstream sstream;
 static StreamIterator *iterator;
 
+
+static void error(string what)
+{
+    cerr << "\x1b[38:2:255:20:60m" << what << "\x1b(B\x1b[m" << endl;
+    exit(EXIT_FAILURE);
+}
+
+
 Formatter::Formatter(void)
 {
     this->indent = 0;
-    // this->param = false;
 }
 
 Formatter::~Formatter(void)
@@ -41,11 +48,14 @@ void Formatter::read(istream *_is)
         sstream.put(_c);
         _is->get(_c);
     }
-
-    if (sstream.good())
-        return;
-    else
-        throw;
+    try {
+        if (sstream.good())
+            return;
+        else
+            throw "Failure while reading from input";
+    } catch (const utf8_t *e) {
+        error(e);
+    }
 }
 
 void Formatter::read(string path)
@@ -75,17 +85,22 @@ void Formatter::write(string path)
 {
     ofstream os(path, ios::out | ios::trunc);
 
-    if (!os.is_open())
-        throw;
+    try {
+        if (!os.is_open())
+            throw "Could not open std::ofstream";
+    } catch (const utf8_t *e) {
+        error(e);
+    }
 
     this->write(os);
 
-    os.close();
-
-    if (os.good())
-        return;
-    else
-        throw;
+    try {
+        os.close();
+        if (!os.good())
+            throw "std::ofstream got failbit";
+    } catch (const utf8_t *e) {
+        error(e);
+    }
 }
 
 string *Formatter::format_(string *s)
@@ -97,15 +112,10 @@ string *Formatter::format_(string *s)
     if (this->match_(_s, "^\\s*(if|elif|else|foreach)\\s*")) {
         this->replace_(_s, "\\s*(\\S+)[\t\\ ]*", " $1");
 
-        string *ind = new string();
-
-        for (align_t i = this->indent; i > 0; i--)
-            ind->append(1, ' ');
-
-        ind->append("$1");
+        string *ind = this->indent_("$1");
         this->replace_(_s, "^\\s+(\\S+)", ind->c_str());
-
         delete ind;
+
         this->indent += 2;
 
         return _s;
@@ -114,14 +124,8 @@ string *Formatter::format_(string *s)
     if (this->match_(_s, "^\\s*(break|continue)")) {
         this->replace_(_s, "\\s*(\\w+)[\t\\ ]*", " $1");
 
-        string *ind = new string();
-
-        for (align_t i = this->indent; i > 0; i--)
-            ind->append(1, ' ');
-
-        ind->append("$1");
+        string *ind = this->indent_("$1");
         this->replace_(_s, "^\\s*(\\w+)", ind->c_str());
-
         delete ind;
 
         return _s;
@@ -131,14 +135,9 @@ string *Formatter::format_(string *s)
         this->replace_(_s, "\\s*(\\w+)[\t\\ ]*", " $1");
 
         this->indent -= 2;
-        string *ind = new string();
 
-        for (align_t i = this->indent; i > 0; i--)
-            ind->append(1, ' ');
-
-        ind->append("$1");
+        string *ind = this->indent_("$1");
         this->replace_(_s, "^\\s*(\\w+)", ind->c_str());
-
         delete ind;
 
         return _s;
@@ -162,7 +161,7 @@ string *Formatter::format_(string *s)
                     else
                         throw "Missing parenthesis ')' !";
                 } catch (const utf8_t *e) {
-                    cerr << e << endl;
+                    error(e);
                 }
             }
             this->format_v('(', _s);
@@ -188,7 +187,7 @@ string *Formatter::format_(string *s)
                     else
                         throw "Missing parenthesis ')' !";
                 } catch (const utf8_t *e) {
-                    cerr << e << endl;
+                    error(e);
                 }
             }
             this->format_v('(', _s);
@@ -200,7 +199,7 @@ string *Formatter::format_(string *s)
                     else
                         throw "Missing parenthesis '}' !";
                 } catch (const utf8_t *e) {
-                    cerr << e << endl;
+                    error(e);
                 }
             }
             this->format_v('{', _s);
@@ -212,7 +211,7 @@ string *Formatter::format_(string *s)
                     else
                         throw "Missing parenthesis ']' !";
                 } catch (const utf8_t *e) {
-                    cerr << e << endl;
+                    error(e);
                 }
             }
 
