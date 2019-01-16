@@ -6,7 +6,7 @@
 #include <console.hh>
 
 #define PROJECT "meson.format"
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 #define LICENSE "MIT"
 #define AUTHOR  "Marcel Bobolz <ergotamin.source@gmail.com>"
 
