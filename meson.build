@@ -1,6 +1,6 @@
 project('format-meson',
         'cpp',
-        version : '1.0.3',
+        version : '1.0.4',
         license : 'MIT',
         default_options :
         ['warning_level=3',
@@ -12,7 +12,8 @@ incldir = include_directories('./include')
 deps = declare_dependency(include_directories : [incldir])
 
 bin = executable('format-meson',
-                 ['src/iterator.cc',
+                 ['src/support.cc',
+                 'src/iterator.cc',
                  'src/formatter.cc',
                  'src/console.cc',
                  'src/main.cc'],

@@ -9,11 +9,11 @@
 #include <cstring>
 #include <unistd.h>
 #include <getopt.h>
-#include <console.hh>
+#include <MesonConsole.hh>
 
 extern const char *__progname;
 
-namespace meson {
+namespace Meson {
 using namespace std;
 
 static int bflag;

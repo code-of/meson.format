@@ -3,9 +3,10 @@
 #// Marcel Bobolz
 #// <ergotamin.source@gmail.com>
 
-#include <formatter.hh>
+#include <MesonIterator.hh>
+#include <MesonTypes.hh>
 
-namespace meson {
+namespace Meson {
 using namespace std;
 
 StreamIterator::StreamIterator(stringstream *in)

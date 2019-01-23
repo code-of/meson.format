@@ -3,7 +3,7 @@
 #// Marcel Bobolz
 #// <ergotamin.source@gmail.com>
 
-#include <console.hh>
+#include <MesonConsole.hh>
 
 #define PROJECT "meson.format"
 #define VERSION "1.0.3"
@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv)
 {
-    meson::Console console(argc, argv);
+    Meson::Console console(argc, argv);
 
     return console.run();
 }

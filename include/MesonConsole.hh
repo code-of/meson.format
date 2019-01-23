@@ -4,9 +4,9 @@
 #// <ergotamin.source@gmail.com>
 static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
 
-#include <formatter.hh>
+#include <MesonFormatter.hh>
 
-namespace meson {
+namespace Meson {
 using namespace std;
 
 class Console : public Formatter {
