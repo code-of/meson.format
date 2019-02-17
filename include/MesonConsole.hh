@@ -9,20 +9,20 @@ static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
 namespace Meson {
 using namespace std;
 
-class Console : public Formatter {
+class Console : protected Formatter {
     public:
-        Console(int argc, char **argv);
-        ~Console(void);
+        explicit Console(int argc, char **argv);
+        virtual ~Console(void);
         int run(void);
 
     private:
         bool hasIfile;
         bool hasOfile;
         bool hasRfile;
-        string *Ifile;
-        string *Ofile;
-        string *Rfile;
-        void init(int argc, char **argv);
+        basic_string<utf8_char_t> *Ifile;
+        basic_string<utf8_char_t> *Ofile;
+        basic_string<utf8_char_t> *Rfile;
+        void init(int argc, utf8_string_t *argv);
         void usage(void);
 };
 }

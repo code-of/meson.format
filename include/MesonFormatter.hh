@@ -6,6 +6,7 @@ static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
 
 #include <string>
 #include <iostream>
+#include <MesonTypes.hh>
 
 namespace Meson {
 using namespace std;
@@ -13,21 +14,24 @@ using namespace std;
 class Formatter {
     public:
         Formatter(void);
-        ~Formatter(void);
-        void read(istream *is);
-        void read(string path);
-        void write(ostream& os);
-        void write(string path);
+        virtual ~Formatter(void);
+
+    protected:
+        void read(basic_istream<utf8_char_t> *is);
+        void read(basic_string<utf8_char_t> path);
+        void write(basic_ostream<utf8_char_t>& os);
+        void write(basic_string<utf8_char_t> path);
 
     private:
-        // bool param;
-        size_t indent;
-        string *format_(string *s);
-        void format_v(char __c, string *_s);
-        string *indent_(const char *_append);
-        size_t count_(char __c, string *_s);
-        void write_(ostream& _os, string *_s);
-        bool match_(string *target, const char *rexp);
-        void replace_(string *target, const char *rexp, const char *rfmt);
+        pos_t indent;
+        pos_t _count(utf8_char_t _c, basic_string<utf8_char_t> *_s);
+        bool _match(basic_string<utf8_char_t> *target, utf8_cstring_t rexp);
+        basic_string<utf8_char_t> *_format(basic_string<utf8_char_t> *s);
+        basic_string<utf8_char_t> *_indent(utf8_cstring_t _append);
+        void _format_ifcase(basic_string<utf8_char_t> *_s);
+        void _format_foreach(basic_string<utf8_char_t> *_s);
+        void _format_v(utf8_char_t _c, basic_string<utf8_char_t> *_s);
+        void _write(basic_ostream<utf8_char_t>& _os, basic_string<utf8_char_t> *_s);
+        void _replace(basic_string<utf8_char_t> *target, utf8_cstring_t rexp, utf8_cstring_t rfmt);
 };
 }

@@ -7,7 +7,7 @@ static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <string>
+#include <MesonTypes.hh>
 
 namespace Meson {
 using namespace std;
@@ -15,14 +15,14 @@ using namespace std;
 class StreamIterator
 {
     public:
-        explicit StreamIterator(stringstream *in);
+        explicit StreamIterator(basic_stringstream<utf8_char_t> *in);
         virtual ~StreamIterator();
-        string *nextLine(void);
+        basic_string<utf8_char_t> *nextLine(void);
 
     private:
         StreamIterator(const StreamIterator& copy);
         StreamIterator& operator=(StreamIterator&);
-        stringstream *inStream;
+        basic_stringstream<utf8_char_t> *inStream;
 
     public:
         bool hasLine(void) const

@@ -10,13 +10,32 @@ static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
 namespace Meson {
 using namespace std;
 
-typedef char utf8_t;
+// pseudo-implementation of utf8-encoded char
+typedef __typeof__ (u8'T') utf8_t;
+template <typename Tp>
+struct __attribute__ ((visibility("protected"), aligned)) def {
+    typedef Tp char_type;
+    typedef Tp *string_type;
+    typedef const Tp *cstring_type;
+};
+typedef def<utf8_t>::char_type utf8_char_t;
+typedef def<utf8_t>::string_type utf8_string_t;
+typedef def<utf8_t>::cstring_type utf8_cstring_t;
 
-typedef unsigned long align_t;
-
+// typeof size_t
 typedef unsigned long pos_t;
 
-const string it(string s);
+// For regular-expression descriptions
+template <typename T>
+struct _HINT_ {
+    _HINT_(T)
+    {
+    };
+};
 
-ostream& error(const char *it);
+typedef _HINT_<const char *> __HINT__;
+
+typedef const basic_string<utf8_char_t> it;
+
+extern basic_ostream<utf8_char_t>& error(basic_string<utf8_char_t> it);
 }

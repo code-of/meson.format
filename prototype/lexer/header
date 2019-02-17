@@ -1,0 +1,114 @@
+#// !c++
+#pragma once
+#// (c) 2018 MIT License
+#// Marcel Bobolz
+#// <ergotamin.source@gmail.com>
+static_assert(__GNUG__, "Your compiler is not supporting GnuExtensions !");
+//
+#include <cstdlib>
+#include <cstdio>
+#include <cstddef>
+//
+#include <mutex>
+#include <cstring>
+#include <string>
+//
+namespace mem {
+//
+    static unsigned int _has_lock = !0;
+    static std::mutex _mtx;
+//
+    template<typename Tp = void>
+    Tp mtx(void)
+    {
+        if (!_has_lock)
+            _mtx.lock();
+        else
+            _mtx.unlock();
+        _has_lock = !_has_lock;
+    }
+//
+    template<typename Tp = size_t>
+    Tp len(const void *m)
+    {
+        return strlen((char *)m);
+    }
+//
+    template<typename Tp = void>
+    Tp *cpy(void *dst, const void *src, size_t sz)
+    {
+        char *out = (char *)dst;
+        const char *in = (const char *)src;
+
+        mem::mtx();
+        while (sz--)
+            *out++ = *in++;
+        mem::mtx();
+
+        return dst;
+    }
+//
+    template<typename Tp = void>
+    Tp *dup(const void *m)
+    {
+        size_t sz = mem::len(m) + (4 >> 2);
+        void *n = __builtin_calloc(sz, (4 >> 2));
+
+        return mem::cpy(n, m, sz);
+    }
+//
+#define ptr_cast(v) ((void *)((char *)v))
+    template<typename Tp = void>
+    Tp *cat(void *dst, const void *src)
+    {
+        size_t s1 = mem::len(dst);
+        size_t s2 = mem::len(src);
+
+        return mem::cpy(ptr_cast(dst + s1), src, s2);
+    }
+#undef ptr_cast
+//
+    template<typename CharT>
+    static char *strcat(const CharT *s)
+    {
+        return (char *)mem::dup((const void *)s);
+    }
+//
+    template<typename CharT, typename ... Vargs>
+    static char *strcat(const CharT *c, const CharT *a, Vargs... targs)
+    {
+        static char *shelf = mem::strcat(c);
+
+        if (0 != *a) {
+            __builtin_realloc((void *)shelf, strlen(a) + (4 >> 2));
+            mem::cat((void *)shelf, (const void *)a);
+            for (auto&& t : { std::string(targs)... })
+                mem::cat((void *)shelf, (const void *)t.c_str());
+        }
+        return mem::strcat((const char *)shelf);
+    }
+//
+    template<typename Tp = void>
+    static Tp *fload(const char *fname)
+    {
+        static void *buf = NULL;
+        size_t len = 0;
+        FILE *in = NULL;
+
+        if (NULL != (in = fopen(fname, "rb"))) {
+            {
+                fseek(in, 0, SEEK_END);
+                len = ftell(in);
+                fflush(in);
+                fseek(in, 0, SEEK_SET);
+            }
+            buf = __builtin_calloc(len, (4 >> 2));
+            if (!fread(buf, len, 1, in))
+                exit(1);
+            fflush(in);
+            fclose(in);
+        }
+        return buf;
+    }
+//
+}

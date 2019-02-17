@@ -9,13 +9,24 @@ project('format-meson',
 
 incldir = include_directories('./include')
 
+dict = {
+  'key': ['value']
+}
+
+'''
+if foo   == bar
+value = 'string'
+  else    
+    value = 0
+    endif
+'''
+
 deps = declare_dependency(include_directories : [incldir])
 
 bin = executable('format-meson',
-                 ['src/support.cc',
-                 'src/iterator.cc',
-                 'src/formatter.cc',
-                 'src/console.cc',
+                 ['src/MesonIterator.cc',
+                 'src/MesonFormatter.cc',
+                 'src/MesonConsole.cc',
                  'src/main.cc'],
                  cpp_args :
                  ['-std=gnu++2a',

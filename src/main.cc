@@ -12,7 +12,9 @@
 
 int main(int argc, char **argv)
 {
-    Meson::Console console(argc, argv);
+    Meson::Console *console = new Meson::Console(argc, argv);
+    int rval = console->run();
 
-    return console.run();
+    delete console;
+    return rval;
 }
